@@ -1,10 +1,4 @@
 <?php
-/*
-Plugin Name: Mi Plugin de Subida de Imágenes
-Description: Ejecuta una función al subir una imagen a WordPress.
-Version: 1.0
-Author: Francisco Cobas
-*/
 
 // Hook que se ejecuta cuando se sube un archivo a la biblioteca de medios
 add_action('add_attachment', 'mi_funcion_subida_imagen');
