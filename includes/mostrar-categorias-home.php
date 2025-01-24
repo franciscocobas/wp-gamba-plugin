@@ -23,14 +23,24 @@ function mostrar_ultimas_categorias() {
     $thumbnail_id = get_term_meta($term->term_id, 'thumbnail_id', true);
     $thumbnail_url = $thumbnail_id ? wp_get_attachment_url($thumbnail_id) : wc_placeholder_img_src();
 
+    // Obtener la categoría padre (si tiene)
+    $parent_id = $term->parent;
+    $parent_name = $parent_id ? get_term($parent_id)->name : null;
+
     // Generar el HTML de la card
     $output .= '
-      <div class="categoria-card">
+      <div class="category-card">
         <a href="' . esc_url(get_term_link($term)) . '">
-          <img src="' . esc_url($thumbnail_url) . '" alt="' . esc_attr($term->name) . '" class="categoria-thumbnail">
-          <h3 class="categoria-titulo">' . esc_html($term->name) . '</h3>
-        </a>
-      </div>';
+          <img src="' . esc_url($thumbnail_url) . '" alt="' . esc_attr($term->name) . '" class="category-thumbnail">
+          <h3 class="category-title">' . esc_html($term->name) . '</h3>
+        </a>';
+
+    // Mostrar la categoría padre si existe, fuera del enlace
+    if ($parent_name) {
+      $output .= '<p class="parent-category">' . esc_html($parent_name) . '</p>';
+    }
+
+    $output .= '</div>';
   }
 
   $output .= '</div>';

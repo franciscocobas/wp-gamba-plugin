@@ -1,0 +1,41 @@
+.categorias-grid {
+  display: flex;
+  gap: 12px;
+}
+
+.category-card {
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #B59CD8;
+  background: #EFE9F6;
+  display: flex;
+  flex-direction: column;
+}
+
+.category-card h3 {
+  color: #8C65C3;
+  font-family: var(--e-global-typography-secondary-font-family), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-block-start: 4px;
+  margin-block-end: 4px;
+}
+
+.category-card .category-thumbnail {
+  aspect-ratio: 3/2;
+}
+
+.parent-category {
+  border-top: 1px solid #B59CD8;
+  text-align: right;
+  margin-top: auto;
+  padding-top: 4px;
+  color: #B59CD8;
+  font-family: var(--e-global-typography-primary-font-family), sans-serif;
+}
+
+@media only screen and (max-width: 48rem) {
+  .categorias-grid {
+    flex-direction: column;
+  }
+}
