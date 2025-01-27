@@ -1,4 +1,5 @@
-.categorias-grid {
+.categorias-grid,
+.subcategorias-grid {
   display: flex;
   gap: 12px;
 }
