@@ -8,10 +8,10 @@ Author: Francisco Cobas
 
 // Incluir los archivos del plugin
 require_once plugin_dir_path(__FILE__) . 'includes/create-woocommerce-product.php';
-require_once plugin_dir_path(__FILE__) . 'includes/mostrar-categorias-home.php';
-require_once plugin_dir_path(__FILE__) . 'includes/mostrar-sub-categorias-page.php';
-require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-pagina-subcategorias.php';
-require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-producto.php';
+require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-gallery-page.php';
+require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-home-page.php';
+require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-product-category-page.php';
+require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-product-page.php';
 
 // Registrar y encolar los estilos del plugin
 function mi_plugin_enqueue_styles() {
