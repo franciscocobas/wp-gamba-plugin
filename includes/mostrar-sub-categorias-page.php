@@ -32,7 +32,6 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
   // Calcular la paginación
   $total_pages = ceil(count($subcategories) / $per_page);
   $paged_subcategories = array_slice($subcategories, $offset, $per_page);
-  $total_pages = 10;
 
   // Iniciar el HTML para las cards
   $output = '<div class="subcategorias-grid">';

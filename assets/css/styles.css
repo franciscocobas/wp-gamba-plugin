@@ -40,3 +40,14 @@
     flex-direction: column;
   }
 }
+
+nav.breadcrumb-nav {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+nav.breadcrumb-nav a {
+  font-family: var(--e-global-typography-primary-font-family), sans-serif;
+  color: #8F001F;
+}
