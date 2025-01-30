@@ -4,7 +4,8 @@
   gap: 12px;
 }
 
-.category-card {
+.category-card,
+.subcategory-card {
   padding: 12px;
   border-radius: 4px;
   border: 1px solid #B59CD8;
@@ -13,7 +14,8 @@
   flex-direction: column;
 }
 
-.category-card h3 {
+.category-card h3,
+.subcategorias-grid h3 {
   color: #8C65C3;
   font-family: var(--e-global-typography-secondary-font-family), sans-serif;
   font-size: 1.5rem;
@@ -36,8 +38,17 @@
 }
 
 @media only screen and (max-width: 48rem) {
-  .categorias-grid {
+
+  .categorias-grid,
+  .subcategorias-grid {
     flex-direction: column;
+  }
+
+  .category-card,
+  .subcategory-card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 }
 
