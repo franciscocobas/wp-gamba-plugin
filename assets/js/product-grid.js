@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
+  let productCards1 = grid1.querySelectorAll(".product-card");
   let productCards2 = grid2.querySelectorAll(".product-card");
   let totalProducts = productCards2.length;
   let currentIndex = 0;
@@ -42,5 +43,28 @@ document.addEventListener("DOMContentLoaded", function () {
       productCards2[currentIndex].style.display = "block";
       updatePagination();
     }
+  });
+
+  // Click on a product image in Grid 1 to update Grid 2
+  productCards1.forEach((card, index) => {
+    card.addEventListener("click", function (e) {
+      console.log("Clicked on product index:", index);
+      e.preventDefault();
+
+      if (index >= totalProducts) {
+        console.warn("No matching product found in Grid 2 for index:", index);
+        return;
+      }
+
+      // Hide the current product in Grid 2
+      productCards2[currentIndex].style.display = "none";
+
+      // Show the new product in Grid 2
+      currentIndex = index;
+      productCards2[currentIndex].style.display = "block";
+
+      // Update pagination
+      updatePagination();
+    });
   });
 });

@@ -76,6 +76,17 @@
   padding: 4px 16px;
 }
 
+#productGrid2 .product-card .product-add-to-cart:hover {
+  border-radius: 6px;
+  border: 1px solid #8C65C3;
+  background: #B59CD8;
+  color: #8C65C3;
+}
+
+#productGrid2 .product-card .product-add-to-cart:hover svg path {
+  stroke: #8C65C3;
+}
+
 .pagination-container {
   display: flex;
   background-color: white;
