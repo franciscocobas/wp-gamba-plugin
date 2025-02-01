@@ -50,6 +50,8 @@ document.addEventListener("DOMContentLoaded", function () {
     card.addEventListener("click", function (e) {
       console.log("Clicked on product index:", index);
       e.preventDefault();
+      // Scroll to #productGrid2 element when click on product card
+      grid2.scrollIntoView({ behavior: "smooth" });
 
       if (index >= totalProducts) {
         console.warn("No matching product found in Grid 2 for index:", index);

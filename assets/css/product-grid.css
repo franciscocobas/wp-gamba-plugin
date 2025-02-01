@@ -1,3 +1,7 @@
+html {
+  scroll-padding-top: 78px;
+}
+
 .grid-container {
   display: flex;
   min-height: 590px;
@@ -14,6 +18,22 @@
   background-color: #1F1330;
   padding: 32px;
   gap: 8px;
+}
+
+@media only screen and (max-width: 768px) {
+  .grid-container {
+    flex-direction: column-reverse;
+  }
+
+  #productGrid1 {
+    grid-template-columns: 1fr 1fr;
+    padding: 16px;
+  }
+
+  #productGrid1 .product-card img {
+    width: 100%;
+    aspect-ratio: 3 /2;
+  }
 }
 
 #productGrid1 .product-card {
@@ -33,6 +53,7 @@
 
 #productGrid2 .product-card .product-data {
   flex: 1;
+  padding-bottom: 16px;
 }
 
 #productGrid2 .product-data .product-title {
