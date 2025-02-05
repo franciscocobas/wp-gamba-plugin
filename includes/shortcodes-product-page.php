@@ -72,3 +72,93 @@ function full_product_breadcrumb_shortcode() {
   return $breadcrumbHtml;
 }
 add_shortcode('breadcrum_producto_simple', 'full_product_breadcrumb_shortcode');
+
+/**
+ * Shortcode: [related_products_grid]
+ * Muestra una grilla de 4 productos al azar relacionados (de la misma subcategoría)
+ * en la página de un producto.
+ *
+ * Cada card muestra la foto, el título, el precio y un botón de agregar al carrito.
+ */
+function related_products_grid_shortcode() {
+  // Asegurarse de que estamos en la página de un producto
+  if ( ! is_product() ) {
+    return '';
+  }
+
+  global $post, $product;
+
+  // Enqueue CSS file ONLY on this WooCommerce category archive page
+  wp_enqueue_style('product-page', plugin_dir_url(__FILE__) . '../assets/css/product-page.css');
+
+
+  // Obtener las categorías del producto actual
+  $terms = get_the_terms( $post->ID, 'product_cat' );
+  if ( ! $terms || is_wp_error( $terms ) ) {
+    return '';
+  }
+
+  // Filtrar solo las subcategorías (donde el padre es distinto de 0)
+  $subterms = array_filter( $terms, function( $term ) {
+    return $term->parent != 0;
+  } );
+
+  // Si existen subcategorías, usar sus IDs; de lo contrario, se usarán todas las categorías
+  if ( ! empty( $subterms ) ) {
+    $cat_ids = wp_list_pluck( $subterms, 'term_id' );
+  } else {
+    $cat_ids = wp_list_pluck( $terms, 'term_id' );
+  }
+
+  // Argumentos para obtener 4 productos al azar de las mismas categorías, excluyendo el producto actual
+  $args = array(
+    'post_type'      => 'product',
+    'posts_per_page' => 4,
+    'orderby'        => 'rand',
+    'post__not_in'   => array( $post->ID ),
+    'tax_query'      => array(
+      array(
+        'taxonomy' => 'product_cat',
+        'field'    => 'term_id',
+        'terms'    => $cat_ids,
+      ),
+    ),
+  );
+
+  $related_query = new WP_Query( $args );
+  if ( ! $related_query->have_posts() ) {
+    return '<p>No se encontraron productos relacionados.</p>';
+  }
+
+  // Iniciar la grilla HTML
+  $output = '<div class="related-products-grid">';
+
+  while ( $related_query->have_posts() ) {
+    $related_query->the_post();
+    global $product;
+
+    // Datos del producto
+    $product_image   = get_the_post_thumbnail_url( get_the_ID(), 'woocommerce_single' );;
+    $product_title   = get_the_title();
+    $product_price   = $product->get_price_html();
+    $product_url     = get_permalink();
+    $add_to_cart_url = $product->add_to_cart_url();
+    $add_to_cart_text = $product->is_type('variable') ? 'Ver opciones' : 'Agregar al carrito';
+
+    $output .= '<div class="related-product-card">';
+      $output .= '<a href="' . esc_url( $product_url ) . '">';
+        $output .= '<img src="' . esc_url( $product_image ) . '" alt="' . esc_attr( $product_title ) . '" class="related-product-image">';
+      $output .= '</a>';
+      $output .= '<h3 class="related-product-title"><a href="' . esc_url( $product_url ) . '">' . esc_html( $product_title ) . '</a></h3>';
+      $output .= '<span class="related-product-price">' . wp_kses_post( $product_price ) . '</span>';
+      $output .= '<a href="' . esc_url( $add_to_cart_url ) . '" class="btn related-product-add-to-cart">' . esc_html( $add_to_cart_text ) . '</a>';
+    $output .= '</div>';
+  }
+
+  wp_reset_postdata();
+
+  $output .= '</div>';
+
+  return $output;
+}
+add_shortcode( 'related_products_grid', 'related_products_grid_shortcode' );
