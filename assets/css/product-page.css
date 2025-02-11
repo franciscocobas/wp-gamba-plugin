@@ -22,13 +22,15 @@
 .related-product-card h3 {
   font-family: "Lato", sans-serif;
   font-weight: 400;
-  font-size: 1.25rem;
+  font-size: 1rem;
   margin: 0;
 }
 
 .related-product-card .related-product-price {
   font-weight: 700;
   font-family: "Lato", sans-serif;
+  font-size: 1rem;
+  margin-top: auto;
 }
 
 @media only screen and (max-width: 767px) {
