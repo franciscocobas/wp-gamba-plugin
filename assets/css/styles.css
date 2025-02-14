@@ -27,6 +27,7 @@ a.btn:hover {
 
 .category-card,
 .subcategory-card {
+  flex: 1;
   padding: 12px;
   border-radius: 4px;
   border: 1px solid #B59CD8;

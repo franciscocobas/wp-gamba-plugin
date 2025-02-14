@@ -1,5 +1,18 @@
 <?php
 
+// Cargar hoja de estilos específica para la página del plugin
+function cpbf_cargar_estilos_admin($hook) {
+  if ($hook === 'product_page_crear-productos-por-fotos') {
+    wp_enqueue_style(
+      'cpbf-estilos',
+      plugin_dir_url(__FILE__) . '../assets/css/upload-products-admin.css',
+      [],
+      '1.0.0'
+    );
+  }
+}
+add_action('admin_enqueue_scripts', 'cpbf_cargar_estilos_admin');
+
 // Evitar acceso directo
 if (!defined('ABSPATH')) {
   exit;
@@ -18,17 +31,49 @@ function cpbf_agregar_submenu() {
 }
 add_action('admin_menu', 'cpbf_agregar_submenu');
 
-// Contenido de la página
+// Contenido de la página con campo para descripción corta y select de categorías padre de WooCommerce
 function cpbf_pagina_contenido() {
-  echo '<div class="wrap">';
+  echo '<div class="card-admin">';
   echo '<h1>Crear Productos por Fotos</h1>';
-  echo '<p>Aquí se podrá subir imágenes para generar productos automáticamente.</p>';
-  echo '<form method="post" enctype="multipart/form-data">';
-  echo '<input type="file" name="product_images[]" multiple accept="image/*">';
-  echo '<br><br>';
-  echo '<input type="submit" name="upload_images" value="Subir Imágenes" class="button button-primary">';
-  echo '</form>';
+  echo '<form method="post" enctype="multipart/form-data" id="images-products-form">';
+
+  echo '<div class="field-group">';
+  echo '<label for="categoria">Nombre del evento: <span class="mark">*</span></label>';
+  echo '<input type="text" name="categoria_woocommerce" id="categoria" placeholder="Ingrese el nombre de la categoría" required>';
   echo '</div>';
+
+  echo '<div class="field-group">';
+  echo '<label for="descripcion_corta">Descripción corta (opcional):</label>';
+  echo '<textarea name="descripcion_corta" id="descripcion_corta" placeholder="Ingrese una descripción corta"></textarea>';
+  echo '</div>';
+
+  // Agregar select con solo categorías padre de WooCommerce
+  echo '<div class="field-group">';
+  echo '<label for="categoria_existente">Seleccionar una categoría padre: <span class="mark">*</span></label>';
+  echo '<select name="categoria_existente" id="categoria_existente" required>';
+  echo '<option value="">-- Seleccione la categoría --</option>';
+
+  $categorias = get_terms([
+    'taxonomy' => 'product_cat',
+    'hide_empty' => false,
+    'parent' => 0
+  ]);
+
+  foreach ($categorias as $categoria) {
+    echo '<option value="' . esc_attr($categoria->term_id) . '">' . esc_html($categoria->name) . '</option>';
+  }
+
+  echo '</select>';
+  echo '</div>';
+  echo '<div class="field-group">';
+  echo '<label for="product_images">Seleccionar las imágenes a subir: <span class="mark">*</span></label>';
+  echo '<input id="proudct_images" type="file" name="product_images[]" multiple accept="image/*">';
+  echo '</div>';
+  echo '<input type="submit" name="upload_images" value="Subir Imágenes y crear productos" class="button button-primary">';
+  echo '</form>';
+  echo '<p><strong>Nota:</strong> Las imágenes subidas se guardarán en la Biblioteca de Medios y se crearán productos de WooCommerce con los datos XMP extraídos.</p>';
+  echo '<p class="underline"><strong>⚠️ Este proceso puede tardar unos minutos.</strong></p>';
+  echo '</div>'; // .card
 
   if (isset($_POST['upload_images']) && !empty($_FILES['product_images'])) {
     cpbf_procesar_subida_imagenes();
@@ -37,6 +82,10 @@ function cpbf_pagina_contenido() {
 
 // Procesar y subir imágenes a la Biblioteca de Medios y extraer datos
 function cpbf_procesar_subida_imagenes() {
+  // Obtener el valor del input 'categoria_woocommerce'
+  $categoria_nombre = $_POST['categoria_woocommerce'] ?? '';
+  $categoria_creada = false;
+
   if (!function_exists('wp_handle_upload')) {
     require_once ABSPATH . 'wp-admin/includes/file.php';
   }
@@ -79,8 +128,15 @@ function cpbf_procesar_subida_imagenes() {
 
         // Extraer datos XMP y crear producto
         $xmp = extraer_datos_xmp($attach_id);
+
+        // Crear la categoría solo para la primera imagen subida
+        if (!$categoria_creada) {
+          crear_categoria_woocommerce($categoria_nombre, $xmp);
+          $categoria_creada = true;
+        }
+
         if (!empty($xmp)) {
-          crear_producto_simple($xmp, $attach_id);
+          crear_producto_simple($xmp, $attach_id, $categoria_nombre);
         }
 
         echo '<div class="updated"><p>Imagen subida y producto creado: ' . esc_html($file_name) . '</p></div>';
@@ -91,17 +147,23 @@ function cpbf_procesar_subida_imagenes() {
   }
 }
 
-// Función para extraer datos XMP
+
+// Función para extraer datos XMP con debug
 function extraer_datos_xmp($attachment_id) {
   $adobeXMP =& adobeXMPforWP::get_instance();
-  return $adobeXMP ? $adobeXMP->get_xmp($attachment_id) : [];
+  $xmp_datos = $adobeXMP ? $adobeXMP->get_xmp($attachment_id) : [];
+
+  // Debug para verificar si se reciben los datos XMP
+  if (!empty($xmp_datos)) {
+    error_log("[DEBUG] XMP obtenidos: " . print_r($xmp_datos, true));
+  } else {
+    error_log("[DEBUG] No se encontraron datos XMP para el attachment ID: $attachment_id");
+  }
+
+  return $xmp_datos;
 }
-
-// Resto del código incluyendo funciones de marca de agua y creación de productos...
-
-
-// Función para crear el producto de WooCommerce
-function crear_producto_simple($xmp, $image_id) {
+// Crear producto de WooCommerce y asignar la categoría creada
+function crear_producto_simple($xmp, $image_id, $categoria_nombre) {
   try {
     $product = new WC_Product_Simple();
 
@@ -113,40 +175,35 @@ function crear_producto_simple($xmp, $image_id) {
     $description_parts = explode('/', $description);
     $short_description = isset($description_parts[1]) ? trim($description_parts[1]) : $description;
 
-    // Debug: registrar los datos XMP que se están utilizando
-    error_log("Debug: Título: $title | Descripción: $description | Descripción corta: $short_description | Ubicación: $location");
-
     // Configuración del producto
     $product->set_name($title);
     $product->set_description($description);
     $product->set_short_description($short_description);
-
-    $product->set_status('publish');  // Publicar
-    $product->set_catalog_visibility('visible'); // Visible en el catálogo
-
+    $product->set_status('publish');
+    $product->set_catalog_visibility('visible');
     $product->set_price(350);
     $product->set_regular_price(350);
-
-    // Asociar la imagen al producto
     $product->set_image_id($image_id);
-
-    // Producto descargable
-    $imagen_url = wp_get_attachment_url($image_id);
     $product->set_downloadable(true);
     $product->set_virtual(true);
-    $product->set_downloads(array(array(
-      'name' => $title,
-      'file' => $imagen_url,
-    )));
+    $product->set_downloads([
+      [
+        'name' => $title,
+        'file' => wp_get_attachment_url($image_id),
+      ]
+    ]);
+
+    // Obtener el término de la categoría creada
+    $term = get_term_by('name', $categoria_nombre, 'product_cat');
+    if ($term && !is_wp_error($term)) {
+      $product->set_category_ids([$term->term_id]);
+    }
 
     // Guardar el producto
     $product->save();
 
     // Agregar metadatos personalizados al producto
     update_field('location', $location, $product->get_id());
-
-    // Debug: registrar que el producto fue creado correctamente
-    error_log("Debug: Producto creado con ID: " . $product->get_id());
 
   } catch (WC_Data_Exception $e) {
     error_log("Error: Excepción de WooCommerce: " . $e->getMessage());
@@ -204,4 +261,39 @@ function aplicar_marca_agua($imagen_path, $mime_type) {
   imagedestroy($marca_agua);
 
   error_log("Marca de agua aplicada a: " . $imagen_path);
+}
+
+// Crear categoría de WooCommerce con campos personalizados de ACF usando XMP
+function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
+  // Usar la descripción corta ingresada y la categoría seleccionada en el formulario
+  $descripcion = $_POST['descripcion_corta'] ?? '';
+  $categoria_padre = $_POST['categoria_existente'] ?? 0;
+
+  if (!term_exists($categoria_nombre, 'product_cat')) {
+    $term = wp_insert_term(
+      $categoria_nombre,
+      'product_cat',
+      [
+        'description' => $descripcion,
+        'slug' => sanitize_title($categoria_nombre),
+        'parent' => intval($categoria_padre)
+      ]
+    );
+
+    if (!is_wp_error($term)) {
+      $term_id = $term['term_id'];
+
+      // Obtener valores de XMP con defaults si faltan
+      $fecha_raw = $xmp_datos['Creation Date'] ?? null;
+      $fecha = $fecha_raw ? date_i18n('j \\d\\e F \\d\\e Y', strtotime($fecha_raw)) : 'Fecha no disponible';
+      $lugar = $xmp_datos['Location'] ?? 'Lugar no disponible';
+      $fotografo = $xmp_datos['Credit'] ?? 'Autor desconocido';
+
+      // Agregar campos personalizados de ACF con valores de XMP
+      update_field('fecha', $fecha, 'term_' . $term_id);
+      update_field('lugar', $lugar, 'term_' . $term_id);
+      update_field('fotografos', $fotografo, 'term_' . $term_id);
+      update_field('descripcion_corta', $descripcion, 'term_' . $term_id);
+    }
+  }
 }
