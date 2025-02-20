@@ -121,13 +121,14 @@ function cpbf_procesar_subida_imagenes() {
 
         $attach_id = wp_insert_attachment($attachment, $file_path);
         $attach_data = wp_generate_attachment_metadata($attach_id, $file_path);
-        wp_update_attachment_metadata($attach_id, $attach_data);
 
-        // Aplicar marca de agua antes de subir
-        aplicar_marca_agua($file_path, $attachment['post_mime_type']);
+        wp_update_attachment_metadata($attach_id, $attach_data);
 
         // Extraer datos XMP y crear producto
         $xmp = extraer_datos_xmp($attach_id);
+
+        // Aplicar marca de agua antes de subir
+        aplicar_marca_agua($file_path, $attachment['post_mime_type']);
 
         // Crear la categoría solo para la primera imagen subida
         if (!$categoria_creada) {
@@ -146,7 +147,6 @@ function cpbf_procesar_subida_imagenes() {
     }
   }
 }
-
 
 // Función para extraer datos XMP con debug
 function extraer_datos_xmp($attachment_id) {
