@@ -93,6 +93,12 @@ function cpbf_procesar_subida_imagenes() {
     require_once ABSPATH . 'wp-admin/includes/image.php';
   }
 
+  $upload_dir = wp_upload_dir();
+  $custom_dir = $upload_dir['basedir'] . '/original-files/' . date('Y/m') . '/';
+  if (!file_exists($custom_dir)) {
+    wp_mkdir_p($custom_dir);
+  }
+
   foreach ($_FILES['product_images']['name'] as $key => $value) {
     if ($_FILES['product_images']['error'][$key] === UPLOAD_ERR_OK) {
       $file = [
@@ -102,47 +108,65 @@ function cpbf_procesar_subida_imagenes() {
         'error'    => $_FILES['product_images']['error'][$key],
         'size'     => $_FILES['product_images']['size'][$key],
       ];
-      $upload_overrides = ['test_form' => false];
 
-      $movefile = wp_handle_upload($file, $upload_overrides);
+      $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+      $new_file_path = $custom_dir . uniqid() . '.' . $file_extension;
 
-      if ($movefile && !isset($movefile['error'])) {
-        $file_path = $movefile['file'];
-        $file_name = basename($file_path);
-        $file_type = wp_check_filetype($file_name);
+      if (move_uploaded_file($file['tmp_name'], $new_file_path)) {
+        error_log("Imagen original movida a: " . $new_file_path);
+        $file_url = str_replace(ABSPATH, site_url('/'), $new_file_path);
 
-        $attachment = [
-          'guid'           => $movefile['url'],
+        $file_type = wp_check_filetype($new_file_path);
+
+        // Guardar la imagen original en la nueva ruta personalizada sin generar tamaños adicionales
+        $original_attach_id = wp_insert_attachment([
+          'guid'           => $file_url,
           'post_mime_type' => $file_type['type'],
-          'post_title'     => preg_replace('/\.[^.]+$/', '', $file_name),
+          'post_title'     => preg_replace('/\.[^.]+$/', '', $file['name']),
           'post_content'   => '',
           'post_status'    => 'inherit',
-        ];
+        ], $new_file_path);
 
-        $attach_id = wp_insert_attachment($attachment, $file_path);
-        $attach_data = wp_generate_attachment_metadata($attach_id, $file_path);
+        // No generar metadatos adicionales para evitar variaciones de tamaño
+        update_post_meta($original_attach_id, '_wp_attachment_metadata', '');
 
-        wp_update_attachment_metadata($attach_id, $attach_data);
+        // Guardar la copia con marca de agua en la carpeta predeterminada de WordPress
+        $watermarked_path = $upload_dir['path'] . '/' . uniqid() . '-watermarked.' . $file_extension;
+        if (copy($new_file_path, $watermarked_path)) {
+          aplicar_marca_agua($watermarked_path, $file_type['type']);
+          error_log("Imagen con marca de agua guardada en: " . $watermarked_path);
 
-        // Extraer datos XMP y crear producto
-        $xmp = extraer_datos_xmp($attach_id);
+          $watermarked_attach_id = wp_insert_attachment([
+            'guid'           => str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $watermarked_path),
+            'post_mime_type' => $file_type['type'],
+            'post_title'     => preg_replace('/\.[^.]+$/', '', $file['name']) . ' (Watermarked)',
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+          ], $watermarked_path);
+          $watermarked_attach_data = wp_generate_attachment_metadata($watermarked_attach_id, $watermarked_path);
+          wp_update_attachment_metadata($watermarked_attach_id, $watermarked_attach_data);
 
-        // Aplicar marca de agua antes de subir
-        aplicar_marca_agua($file_path, $attachment['post_mime_type']);
+          // Extraer datos XMP y crear producto
+          $xmp = extraer_datos_xmp($original_attach_id);
 
-        // Crear la categoría solo para la primera imagen subida
-        if (!$categoria_creada) {
-          crear_categoria_woocommerce($categoria_nombre, $xmp);
-          $categoria_creada = true;
+          // Crear la categoría solo para la primera imagen subida
+          if (!$categoria_creada) {
+            crear_categoria_woocommerce($categoria_nombre, $xmp);
+            $categoria_creada = true;
+          }
+
+          if (!empty($xmp)) {
+            crear_producto_simple($xmp, $watermarked_attach_id, $original_attach_id, $categoria_nombre);
+          }
+
+          echo '<div class="updated"><p>Imagen subida y producto creado: ' . esc_html($file['name']) . '</p></div>';
+        } else {
+          error_log("Error al copiar la imagen para aplicar la marca de agua.");
+          echo '<div class="error"><p>Error al copiar la imagen para aplicar la marca de agua.</p></div>';
         }
-
-        if (!empty($xmp)) {
-          crear_producto_simple($xmp, $attach_id, $categoria_nombre);
-        }
-
-        echo '<div class="updated"><p>Imagen subida y producto creado: ' . esc_html($file_name) . '</p></div>';
       } else {
-        echo '<div class="error"><p>Error al subir la imagen: ' . esc_html($movefile['error']) . '</p></div>';
+        error_log("Error al mover la imagen a la carpeta personalizada.");
+        echo '<div class="error"><p>Error al mover la imagen a la carpeta personalizada.</p></div>';
       }
     }
   }
@@ -162,8 +186,9 @@ function extraer_datos_xmp($attachment_id) {
 
   return $xmp_datos;
 }
-// Crear producto de WooCommerce y asignar la categoría creada
-function crear_producto_simple($xmp, $image_id, $categoria_nombre) {
+
+// Función para crear el producto de WooCommerce
+function crear_producto_simple($xmp, $watermarked_image_id, $original_image_id, $categoria_nombre) {
   try {
     $product = new WC_Product_Simple();
 
@@ -179,24 +204,34 @@ function crear_producto_simple($xmp, $image_id, $categoria_nombre) {
     $product->set_name($title);
     $product->set_description($description);
     $product->set_short_description($short_description);
-    $product->set_status('publish');
-    $product->set_catalog_visibility('visible');
+
+    $product->set_status('publish');  // Publicar
+    $product->set_catalog_visibility('visible'); // Visible en el catálogo
     $product->set_price(350);
     $product->set_regular_price(350);
-    $product->set_image_id($image_id);
-    $product->set_downloadable(true);
-    $product->set_virtual(true);
-    $product->set_downloads([
-      [
-        'name' => $title,
-        'file' => wp_get_attachment_url($image_id),
-      ]
-    ]);
 
-    // Obtener el término de la categoría creada
-    $term = get_term_by('name', $categoria_nombre, 'product_cat');
-    if ($term && !is_wp_error($term)) {
-      $product->set_category_ids([$term->term_id]);
+    // Asociar la imagen con marca de agua como imagen principal del producto
+    $product->set_image_id($watermarked_image_id);
+
+    // Usar la imagen original como archivo descargable
+    if ($original_image_id) {
+      $original_image_url = wp_get_attachment_url($original_image_id);
+      if ($original_image_url) {
+        $product->set_downloadable(true);
+        $product->set_virtual(true);
+        $product->set_downloads(array(array(
+          'name' => $title,
+          'file' => $original_image_url,
+        )));
+      }
+    }
+
+    // Asignar la categoría seleccionada por el usuario
+    if ($categoria_nombre) {
+      $term = get_term_by('name', $categoria_nombre, 'product_cat');
+      if ($term) {
+        $product->set_category_ids([$term->term_id]);
+      }
     }
 
     // Guardar el producto
