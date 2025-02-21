@@ -31,7 +31,7 @@ function cpbf_agregar_submenu() {
 }
 add_action('admin_menu', 'cpbf_agregar_submenu');
 
-// Contenido de la página con campo para descripción corta y select de categorías padre de WooCommerce
+// Contenido de la página con campo para descripción corta, miniatura y select de categorías padre de WooCommerce
 function cpbf_pagina_contenido() {
   echo '<div class="card-admin">';
   echo '<h1>Crear Productos por Fotos</h1>';
@@ -45,6 +45,12 @@ function cpbf_pagina_contenido() {
   echo '<div class="field-group">';
   echo '<label for="descripcion_corta">Descripción corta (opcional):</label>';
   echo '<textarea name="descripcion_corta" id="descripcion_corta" placeholder="Ingrese una descripción corta"></textarea>';
+  echo '</div>';
+
+  // Agregar input para imagen de miniatura de la categoría
+  echo '<div class="field-group">';
+  echo '<label for="categoria_thumbnail">Imagen de miniatura del evento (opcional):</label>';
+  echo '<input type="file" name="categoria_thumbnail" id="categoria_thumbnail" accept="image/*">';
   echo '</div>';
 
   // Agregar select con solo categorías padre de WooCommerce
@@ -65,11 +71,12 @@ function cpbf_pagina_contenido() {
 
   echo '</select>';
   echo '</div>';
-  echo '<div class="field-group">';
-  echo '<label for="product_images">Seleccionar las imágenes a subir: <span class="mark">*</span></label>';
-  echo '<input id="proudct_images" type="file" name="product_images[]" multiple accept="image/*">';
+  echo '<div class="field-group images-upload">';
+  echo '<label for="product_images"><strong>Seleccionar las imágenes a subir:</strong> <span class="mark">*</span></label>';
+  echo '<input id="product_images" type="file" name="product_images[]" multiple accept="image/*">';
   echo '</div>';
-  echo '<input type="submit" name="upload_images" value="Subir Imágenes y crear productos" class="button button-primary">';
+
+  echo '<input type="submit" name="upload_images" value="Subir Imágenes y crear productos" class="button button-primary" id="submit-button">';
   echo '</form>';
   echo '<p><strong>Nota:</strong> Las imágenes subidas se guardarán en la Biblioteca de Medios y se crearán productos de WooCommerce con los datos XMP extraídos.</p>';
   echo '<p class="underline"><strong>⚠️ Este proceso puede tardar unos minutos.</strong></p>';
@@ -320,7 +327,7 @@ function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
 
       // Obtener valores de XMP con defaults si faltan
       $fecha_raw = $xmp_datos['Creation Date'] ?? null;
-      $fecha = $fecha_raw ? date_i18n('j \\d\\e F \\d\\e Y', strtotime($fecha_raw)) : 'Fecha no disponible';
+      $fecha = $fecha_raw ? date_i18n('j \d\e F \d\e Y', strtotime($fecha_raw)) : 'Fecha no disponible';
       $lugar = $xmp_datos['Location'] ?? 'Lugar no disponible';
       $fotografo = $xmp_datos['Credit'] ?? 'Autor desconocido';
 
@@ -329,6 +336,25 @@ function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
       update_field('lugar', $lugar, 'term_' . $term_id);
       update_field('fotografos', $fotografo, 'term_' . $term_id);
       update_field('descripcion_corta', $descripcion, 'term_' . $term_id);
+
+      // Procesar y asignar la imagen de miniatura de la categoría si se subió
+      if (!empty($_FILES['categoria_thumbnail']['name'])) {
+        $uploaded_file = wp_handle_upload($_FILES['categoria_thumbnail'], ['test_form' => false]);
+        if ($uploaded_file && !isset($uploaded_file['error'])) {
+          $attachment = [
+            'guid'           => $uploaded_file['url'],
+            'post_mime_type' => $uploaded_file['type'],
+            'post_title'     => sanitize_file_name($_FILES['categoria_thumbnail']['name']),
+            'post_content'   => '',
+            'post_status'    => 'inherit'
+          ];
+          $attach_id = wp_insert_attachment($attachment, $uploaded_file['file']);
+          require_once ABSPATH . 'wp-admin/includes/image.php';
+          $attach_data = wp_generate_attachment_metadata($attach_id, $uploaded_file['file']);
+          wp_update_attachment_metadata($attach_id, $attach_data);
+          update_term_meta($term_id, 'thumbnail_id', $attach_id);
+        }
+      }
     }
   }
 }
