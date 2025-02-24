@@ -1,3 +1,8 @@
+section.main-container {
+  display: flex;
+  gap: 16px;
+}
+
 #wpcontent {
   background-color: #EFE9F6;
   padding: 30px;
@@ -69,4 +74,19 @@ form#images-products-form input[type=submit]:hover {
   background-color: #B59CD8;
   color: #8C65C3;
   border: 1px solid #8C65C3;
+}
+
+.image-container img {
+  width: 100%;
+}
+
+@media only screen and (max-width: 768px) {
+  section.main-container {
+    flex-direction: column;
+  }
+
+  body.wp-admin #wpcontent {
+    padding: 20px;
+    margin: 0;
+  }
 }

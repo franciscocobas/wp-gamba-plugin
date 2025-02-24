@@ -33,6 +33,7 @@ add_action('admin_menu', 'cpbf_agregar_submenu');
 
 // Contenido de la página con campo para descripción corta, miniatura y select de categorías padre de WooCommerce
 function cpbf_pagina_contenido() {
+  echo '<section class="main-container">';
   echo '<div class="card-admin">';
   echo '<h1>Crear Productos por Fotos</h1>';
   echo '<form method="post" enctype="multipart/form-data" id="images-products-form">';
@@ -50,6 +51,7 @@ function cpbf_pagina_contenido() {
   // Agregar input para imagen de miniatura de la categoría
   echo '<div class="field-group">';
   echo '<label for="categoria_thumbnail">Imagen de miniatura del evento (opcional):</label>';
+  echo '<small>La imagen en miniatura se muestra en portada y en otros lugares donde se muestra el evento.</small>';
   echo '<input type="file" name="categoria_thumbnail" id="categoria_thumbnail" accept="image/*">';
   echo '</div>';
 
@@ -78,9 +80,13 @@ function cpbf_pagina_contenido() {
 
   echo '<input type="submit" name="upload_images" value="Subir Imágenes y crear productos" class="button button-primary" id="submit-button">';
   echo '</form>';
-  echo '<p><strong>Nota:</strong> Las imágenes subidas se guardarán en la Biblioteca de Medios y se crearán productos de WooCommerce con los datos XMP extraídos.</p>';
-  echo '<p class="underline"><strong>⚠️ Este proceso puede tardar unos minutos.</strong></p>';
+  echo '<p class="underline"><strong>⚠️ Atención: Este proceso puede tardar varios minutos ya que se crean todos los productos de WooCommerce.</strong></p>';
   echo '</div>'; // .card
+
+  echo '<div class="image-container">';
+  echo '<img src="'.plugin_dir_url(__FILE__) . '../screenshot-ayuda.webp" alt="Screenshot de ayuda" />';
+  echo '</div>';
+  echo '</section>'; // .main-container
 
   if (isset($_POST['upload_images']) && !empty($_FILES['product_images'])) {
     cpbf_procesar_subida_imagenes();
