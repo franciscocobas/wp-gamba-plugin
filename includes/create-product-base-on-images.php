@@ -50,9 +50,9 @@ function cpbf_pagina_contenido() {
 
   // Agregar input para imagen de miniatura de la categoría
   echo '<div class="field-group">';
-  echo '<label for="categoria_thumbnail">Imagen de miniatura del evento (opcional):</label>';
+  echo '<label for="categoria_thumbnail">Imagen de miniatura del evento: <span class="mark">*</span></label>';
   echo '<small>La imagen en miniatura se muestra en portada y en otros lugares donde se muestra el evento.</small>';
-  echo '<input type="file" name="categoria_thumbnail" id="categoria_thumbnail" accept="image/*">';
+  echo '<input type="file" name="categoria_thumbnail" id="categoria_thumbnail" accept="image/*" required>';
   echo '</div>';
 
   // Agregar select con solo categorías padre de WooCommerce

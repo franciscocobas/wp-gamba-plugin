@@ -25,3 +25,31 @@ function mi_plugin_enqueue_styles() {
   );
 }
 add_action('wp_enqueue_scripts', 'mi_plugin_enqueue_styles');
+
+// Cambiar el logo en la pantalla de login
+function mi_personalizacion_logo_login() {
+  ?>
+  <style type="text/css">
+    #login h1 a {
+      background-image: url('<?php echo plugin_dir_url(__FILE__) . '/logo-gamba.png'; ?>');
+      width: 320px;
+      height: 84px;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+  </style>
+  <?php
+}
+add_action('login_enqueue_scripts', 'mi_personalizacion_logo_login');
+
+// Cambiar la URL del logo
+function mi_personalizacion_logo_url() {
+  return home_url(); // Cambia esto si quieres otra URL
+}
+add_filter('login_headerurl', 'mi_personalizacion_logo_url');
+
+// Cambiar el texto alternativo del logo
+function mi_personalizacion_logo_title() {
+  return get_bloginfo('name');
+}
+add_filter('login_headertext', 'mi_personalizacion_logo_title');
