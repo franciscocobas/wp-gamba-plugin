@@ -41,6 +41,16 @@ html {
   flex-direction: column;
 }
 
+#productGrid1 .product-card>a {
+  display: flex;
+}
+
+#productGrid1 .product-card img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+}
+
 #productGrid2 .hidden-card {
   display: none;
 }

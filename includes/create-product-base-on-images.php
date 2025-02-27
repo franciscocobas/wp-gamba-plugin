@@ -40,7 +40,7 @@ function cpbf_pagina_contenido() {
 
   echo '<div class="field-group">';
   echo '<label for="categoria">Nombre del evento: <span class="mark">*</span></label>';
-  echo '<input type="text" name="categoria_woocommerce" id="categoria" placeholder="Ingrese el nombre de la categoría" required>';
+  echo '<input type="text" name="categoria_woocommerce" id="categoria" placeholder="Ingrese el nombre del evento" required>';
   echo '</div>';
 
   echo '<div class="field-group">';

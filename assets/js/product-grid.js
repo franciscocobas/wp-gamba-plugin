@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let currentIndex = 0;
 
   function updatePagination() {
-    photoCounter.innerHTML = `Photo <span class="current-item">${currentIndex + 1}</span> of ${totalProducts}`;
+    photoCounter.innerHTML = `Foto <span class="current-item">${currentIndex + 1}</span> de ${totalProducts}`;
     prevButton.disabled = currentIndex === 0;
     nextButton.disabled = currentIndex === totalProducts - 1;
   }
