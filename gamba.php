@@ -87,3 +87,19 @@ function sincronizar_acf_con_term_meta($value, $post_id, $field) {
   return $value;
 }
 add_filter('acf/update_value', 'sincronizar_acf_con_term_meta', 10, 3);
+
+// 🔥 Eliminar metadatos cuando se borra una categoría de productos
+function eliminar_metadatos_al_borrar_categoria($term_id, $taxonomy) {
+  if ($taxonomy === 'product_cat') {
+    global $wpdb;
+
+    // Registrar en debug.log antes de borrar
+    error_log("🗑 Eliminando metadatos de la categoría - Term ID: {$term_id}");
+
+    // Eliminar todos los metadatos asociados al término
+    $wpdb->delete($wpdb->termmeta, ['term_id' => $term_id]);
+
+    error_log("✅ Metadatos eliminados correctamente para Term ID: {$term_id}");
+  }
+}
+add_action('delete_term', 'eliminar_metadatos_al_borrar_categoria', 10, 2);

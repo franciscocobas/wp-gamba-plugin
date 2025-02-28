@@ -71,7 +71,7 @@ function product_archive_grid_shortcode() {
   // Fetch products from the current category
   $queryArgs = [
     'post_type'      => 'product',
-    'posts_per_page' => 12, // Change as needed
+    'posts_per_page' => -1, // Change as needed
     'tax_query'      => [
       [
         'taxonomy' => 'product_cat',

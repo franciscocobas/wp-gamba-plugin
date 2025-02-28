@@ -335,18 +335,21 @@ function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
       // Obtener valores de XMP con defaults si faltan
       $fecha_raw = $xmp_datos['Creation Date'] ?? null;
       $fecha = $fecha_raw ? date_i18n('j \d\e F \d\e Y', strtotime($fecha_raw)) : 'Fecha no disponible';
-      $fecha_de_orden = $fecha_raw ? date('Y-m-d', strtotime($fecha_raw)) : '';
+
+      // Convertir a formato YYYYMMDD para mantener consistencia en la base de datos
+      $fecha_de_orden = $fecha_raw ? date('Ymd', strtotime($fecha_raw)) : '';
+
       $lugar = $xmp_datos['Location'] ?? 'Lugar no disponible';
       $fotografo = $xmp_datos['Credit'] ?? 'Autor desconocido';
 
-      // Agregar campos personalizados de ACF con valores de XMP
+      // Guardar los campos en ACF
       update_field('fecha', $fecha, 'term_' . $term_id);
       update_field('fecha_de_orden', $fecha_de_orden, 'term_' . $term_id);
       update_field('lugar', $lugar, 'term_' . $term_id);
       update_field('fotografos', $fotografo, 'term_' . $term_id);
       update_field('descripcion_corta', $descripcion, 'term_' . $term_id);
 
-      // 🔥 Sincronizar manualmente con wp_termmeta para que funcione con get_terms()
+      // Guardar `fecha_de_orden` en `wp_termmeta` con el formato correcto
       update_term_meta($term_id, 'fecha_de_orden', $fecha_de_orden);
 
       // Procesar y asignar la imagen de miniatura de la categoría si se subió
