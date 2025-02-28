@@ -1,6 +1,10 @@
 <?php
 // Shortcode para mostrar subcategorías con paginación
 function mostrar_solo_subcategorias_con_paginacion($atts) {
+
+  // Enqueue CSS file ONLY on this WooCommerce category archive page
+  wp_enqueue_style('gallery-page', plugin_dir_url(__FILE__) . '../assets/css/gallery-page.css');
+
   // Atributos predeterminados
   $atts = shortcode_atts([
     'per_page' => 12, // Número de categorías por página
@@ -12,17 +16,23 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
   $current_page = max(1, get_query_var('paged'));
   $offset = ($paged - 1) * $per_page;
 
-  // Obtener todas las categorías de productos
+  // Obtener todas las categorías de productos con orden por ACF 'fecha_de_orden'
   $terms = get_terms([
     'taxonomy'   => 'product_cat',
-    'orderby'    => 'name',
-    'order'      => 'ASC',
-    'hide_empty' => false, // Incluir categorías vacías
+    'meta_key'   => 'fecha_de_orden',
+    'orderby'    => 'meta_value_num',
+    'order'      => 'DESC',
+    'hide_empty' => false,
   ]);
+
+  // Verificar si hubo un error al obtener los términos
+  if (is_wp_error($terms)) {
+    return '<p>Error al obtener las subcategorías.</p>';
+  }
 
   // Filtrar para obtener solo subcategorías (categorías que tienen un padre)
   $subcategories = array_filter($terms, function ($term) {
-    return $term->parent !== 0; // Solo categorías con un padre
+    return $term->parent !== 0;
   });
 
   if (empty($subcategories)) {

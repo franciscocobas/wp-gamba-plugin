@@ -220,8 +220,9 @@ function crear_producto_simple($xmp, $watermarked_image_id, $original_image_id, 
 
     $product->set_status('publish');  // Publicar
     $product->set_catalog_visibility('visible'); // Visible en el catálogo
-    $product->set_price(350);
-    $product->set_regular_price(350);
+    $precio = get_option('mi_plugin_precio_producto', 350);
+    $product->set_price($precio);
+    $product->set_regular_price($precio);
 
     // Asociar la imagen con marca de agua como imagen principal del producto
     $product->set_image_id($watermarked_image_id);
@@ -334,14 +335,19 @@ function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
       // Obtener valores de XMP con defaults si faltan
       $fecha_raw = $xmp_datos['Creation Date'] ?? null;
       $fecha = $fecha_raw ? date_i18n('j \d\e F \d\e Y', strtotime($fecha_raw)) : 'Fecha no disponible';
+      $fecha_de_orden = $fecha_raw ? date('Y-m-d', strtotime($fecha_raw)) : '';
       $lugar = $xmp_datos['Location'] ?? 'Lugar no disponible';
       $fotografo = $xmp_datos['Credit'] ?? 'Autor desconocido';
 
       // Agregar campos personalizados de ACF con valores de XMP
       update_field('fecha', $fecha, 'term_' . $term_id);
+      update_field('fecha_de_orden', $fecha_de_orden, 'term_' . $term_id);
       update_field('lugar', $lugar, 'term_' . $term_id);
       update_field('fotografos', $fotografo, 'term_' . $term_id);
       update_field('descripcion_corta', $descripcion, 'term_' . $term_id);
+
+      // 🔥 Sincronizar manualmente con wp_termmeta para que funcione con get_terms()
+      update_term_meta($term_id, 'fecha_de_orden', $fecha_de_orden);
 
       // Procesar y asignar la imagen de miniatura de la categoría si se subió
       if (!empty($_FILES['categoria_thumbnail']['name'])) {
