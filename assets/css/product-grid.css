@@ -5,6 +5,7 @@ html {
 .grid-container {
   display: flex;
   min-height: 590px;
+  border-bottom: 1px solid #613B96;
 }
 
 .grid-container>div {
@@ -18,6 +19,7 @@ html {
   background-color: #1F1330;
   padding: 32px;
   gap: 8px;
+  overflow-y: scroll;
 }
 
 @media only screen and (max-width: 768px) {

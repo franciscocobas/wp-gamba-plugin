@@ -22,6 +22,10 @@ document.addEventListener("DOMContentLoaded", function () {
     photoCounter.innerHTML = `Foto <span class="current-item">${currentIndex + 1}</span> de ${totalProducts}`;
     prevButton.disabled = currentIndex === 0;
     nextButton.disabled = currentIndex === totalProducts - 1;
+    const productGrid2 = document.querySelector("#productGrid2").offsetHeight;
+    const paginationContainer = document.querySelector(".pagination-container").offsetHeight;
+    const rightContainer = productGrid2 + paginationContainer;
+    document.querySelector("#productGrid1").style.maxHeight = rightContainer + "px";
   }
 
   // Initialize pagination
