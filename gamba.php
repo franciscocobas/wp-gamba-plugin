@@ -13,6 +13,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-gallery-page.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-home-page.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-product-category-page.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-product-page.php';
+require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-search-page.php';
 
 // Registrar y encolar los estilos del plugin
 function mi_plugin_enqueue_styles() {

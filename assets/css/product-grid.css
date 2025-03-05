@@ -20,6 +20,7 @@ html {
   padding: 32px;
   gap: 8px;
   overflow-y: scroll;
+  min-height: 715px;
 }
 
 @media only screen and (max-width: 768px) {
@@ -53,8 +54,22 @@ html {
   object-fit: contain;
 }
 
-#productGrid2 .hidden-card {
+#productGrid2 {
+  border-left: 1px solid #8C65C3;
+}
+
+#productGrid2 .product-card.hidden-card {
   display: none;
+}
+
+#productGrid2 .product-card>a {
+  display: flex;
+  justify-content: center;
+  background-color: #1F1330;
+}
+
+#productGrid2 .product-card img {
+  max-height: 90dvh;
 }
 
 #productGrid2 .product-card .product-info {

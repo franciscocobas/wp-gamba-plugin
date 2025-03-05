@@ -1,0 +1,42 @@
+.custom-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.related-product-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.related-product-card img {
+  aspect-ratio: 3/2;
+  object-fit: contain;
+  background-color: #1F1330;
+}
+
+.related-product-card .related-product-price {
+  display: block;
+}
+
+.related-product-card h3 {
+  font-family: "Lato", sans-serif;
+  font-weight: 400;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.related-product-card .related-product-price {
+  font-weight: 700;
+  font-family: "Lato", sans-serif;
+  font-size: 1rem;
+  margin-top: auto;
+}
+
+@media only screen and (max-width: 767px) {
+  .related-products-grid {
+    grid-template-columns: 1fr;
+  }
+}

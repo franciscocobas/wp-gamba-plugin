@@ -4,7 +4,8 @@ function mostrar_ultimas_subcategorias() {
   // Obtener todas las subcategorías (categorías con padre)
   $terms = get_terms([
     'taxonomy'   => 'product_cat',
-    'orderby'    => 'id',
+    'meta_key'   => 'fecha_de_orden',
+    'orderby'    => 'meta_value_num',
     'order'      => 'DESC',
     'hide_empty' => false,
     'number'     => 10, // Buscar hasta 10 categorías para asegurar subcategorías
