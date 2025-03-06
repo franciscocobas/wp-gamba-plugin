@@ -50,6 +50,12 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
     // Obtener la miniatura de la categoría
     $thumbnail_id = get_term_meta($term->term_id, 'thumbnail_id', true);
     $thumbnail_url = $thumbnail_id ? wp_get_attachment_url($thumbnail_id) : wc_placeholder_img_src();
+    // Obtener la categoría padre
+    $parent_name = get_term($term->parent)->name;
+
+    $event_date = get_term_meta($term->term_id, 'fecha_de_orden', true);
+    // Format date like this: 12/12/2024
+    $event_date = date('d/m/Y', strtotime($event_date));
 
     // Generar el HTML de la card
     $output .= '
@@ -58,6 +64,7 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
           <img src="' . esc_url($thumbnail_url) . '" alt="' . esc_attr($term->name) . '" class="subcategory-thumbnail">
           <h3 class="subcategory-title">' . esc_html($term->name) . '</h3>
         </a>
+        <p class="parent-category"><span>' . esc_html($event_date) . '</span><span>' . esc_html($parent_name) . '</span></p>
       </div>';
   }
 

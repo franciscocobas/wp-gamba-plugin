@@ -3,3 +3,27 @@ body .subcategorias-grid {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
+
+.subcategorias-grid h3.subcategory-title {
+  color: #8C65C3;
+}
+
+.subcategory-card .parent-category {
+  border-color: #B59CD8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+@media only screen and (max-width: 768px) {
+  body .subcategorias-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subcategory-card {
+    border-radius: 0;
+    border-right: none;
+    border-left: none;
+  }
+}

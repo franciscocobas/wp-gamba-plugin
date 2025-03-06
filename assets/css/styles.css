@@ -38,7 +38,7 @@ a.btn:hover {
 
 .category-card h3,
 .subcategorias-grid h3 {
-  color: #362154;
+  color: #8C65C3;
   font-family: var(--e-global-typography-secondary-font-family), sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
@@ -55,8 +55,12 @@ a.btn:hover {
   text-align: right;
   margin-top: auto;
   padding-top: 4px;
-  color: #613B96;
+  color: #B59CD8;
   font-family: var(--e-global-typography-primary-font-family), sans-serif;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
 }
 
 @media only screen and (max-width: 48rem) {

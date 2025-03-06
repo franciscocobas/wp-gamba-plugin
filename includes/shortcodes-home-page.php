@@ -35,6 +35,11 @@ function mostrar_ultimas_subcategorias() {
     // Obtener la categoría padre
     $parent_name = get_term($term->parent)->name;
 
+    // Obtener la fecha del evento
+    $event_date = get_term_meta($term->term_id, 'fecha_de_orden', true);
+    // Formatear la fecha como: 12/12/2024
+    $event_date = date('d/m/Y', strtotime($event_date));
+
     // Generar el HTML de la card
     $output .= '
       <div class="category-card">
@@ -42,7 +47,7 @@ function mostrar_ultimas_subcategorias() {
           <img src="' . esc_url($thumbnail_url) . '" alt="' . esc_attr($term->name) . '" class="category-thumbnail">
           <h3 class="category-title">' . esc_html($term->name) . '</h3>
         </a>
-        <p class="parent-category">' . esc_html($parent_name) . '</p>
+        <p class="parent-category"><span>' . esc_html($event_date) . '</span><span>' . esc_html($parent_name) . '</span></p>
       </div>';
   }
 
