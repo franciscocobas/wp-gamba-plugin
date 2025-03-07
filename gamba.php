@@ -7,6 +7,7 @@ Author: Francisco Cobas
 */
 
 // Incluir los archivos del plugin
+require_once plugin_dir_path(__FILE__) . 'includes/add-products-to-category.php';
 require_once plugin_dir_path(__FILE__) . 'includes/create-product-base-on-images.php';
 require_once plugin_dir_path(__FILE__) . 'includes/general-options-page.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-gallery-page.php';
@@ -104,3 +105,48 @@ function eliminar_metadatos_al_borrar_categoria($term_id, $taxonomy) {
   }
 }
 add_action('delete_term', 'eliminar_metadatos_al_borrar_categoria', 10, 2);
+
+// Agregar un nuevo menú principal llamado "Gamba"
+function gamba_agregar_menu() {
+  // Menú principal (apunta a "Crear productos por foto")
+  add_menu_page(
+    'Gamba',
+    'Gamba',
+    'manage_woocommerce',
+    'crear-productos-por-fotos',  // Ahora apunta al slug de "Crear productos por foto"
+    'cpbf_pagina_contenido',
+    'dashicons-camera',
+    56
+  );
+
+  // Submenú: Crear productos por foto (mismo slug que el menú principal)
+  add_submenu_page(
+    'crear-productos-por-fotos',
+    'Crear productos por foto',
+    'Crear productos por foto',
+    'manage_woocommerce',
+    'crear-productos-por-fotos',
+    'cpbf_pagina_contenido'
+  );
+
+  // Submenú: Ajustes generales
+  add_submenu_page(
+    'crear-productos-por-fotos',
+    'Ajustes generales',
+    'Ajustes generales',
+    'manage_woocommerce',
+    'gamba-ajustes-generales',
+    'mi_plugin_mostrar_pagina_configuracion'
+  );
+
+  // Submenú: Agregar productos a evento
+  add_submenu_page(
+    'crear-productos-por-fotos',
+    'Agregar productos a evento',
+    'Agregar productos a evento',
+    'manage_woocommerce',
+    'gamba-agregar-productos-evento',
+    'gamba_pagina_agregar_productos_evento'
+  );
+}
+add_action('admin_menu', 'gamba_agregar_menu');

@@ -72,6 +72,8 @@ function product_archive_grid_shortcode() {
   $queryArgs = [
     'post_type'      => 'product',
     'posts_per_page' => -1, // Change as needed
+    'orderby'        => 'date',
+    'order'          => 'ASC',
     'tax_query'      => [
       [
         'taxonomy' => 'product_cat',

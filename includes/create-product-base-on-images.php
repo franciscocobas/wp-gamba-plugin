@@ -1,8 +1,13 @@
 <?php
 
+// Evitar acceso directo
+if (!defined('ABSPATH')) {
+  exit;
+}
+
 // Cargar hoja de estilos específica para la página del plugin
 function cpbf_cargar_estilos_admin($hook) {
-  if ($hook === 'product_page_crear-productos-por-fotos') {
+  if ($hook === 'toplevel_page_crear-productos-por-fotos') {
     wp_enqueue_style(
       'cpbf-estilos',
       plugin_dir_url(__FILE__) . '../assets/css/upload-products-admin.css',
@@ -12,24 +17,6 @@ function cpbf_cargar_estilos_admin($hook) {
   }
 }
 add_action('admin_enqueue_scripts', 'cpbf_cargar_estilos_admin');
-
-// Evitar acceso directo
-if (!defined('ABSPATH')) {
-  exit;
-}
-
-// Agregar el submenú dentro de Productos en WooCommerce
-function cpbf_agregar_submenu() {
-  add_submenu_page(
-    'edit.php?post_type=product', // Parent slug: Productos de WooCommerce
-    'Crear productos por fotos',  // Título de la página
-    'Crear productos por fotos',  // Título del menú
-    'manage_woocommerce',         // Capacidad requerida
-    'crear-productos-por-fotos',  // Slug de la página
-    'cpbf_pagina_contenido'       // Función de contenido
-  );
-}
-add_action('admin_menu', 'cpbf_agregar_submenu');
 
 // Contenido de la página con campo para descripción corta, miniatura y select de categorías padre de WooCommerce
 function cpbf_pagina_contenido() {
@@ -94,10 +81,15 @@ function cpbf_pagina_contenido() {
 }
 
 // Procesar y subir imágenes a la Biblioteca de Medios y extraer datos
-function cpbf_procesar_subida_imagenes() {
-  // Obtener el valor del input 'categoria_woocommerce'
-  $categoria_nombre = $_POST['categoria_woocommerce'] ?? '';
+function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
   $categoria_creada = false;
+
+  if (!$categoria_nombre && isset($_POST['categoria_woocommerce'])) {
+    // Obtener el valor del input 'categoria_woocommerce'
+    $categoria_nombre = sanitize_text_field($_POST['categoria_woocommerce']);
+  }
+
+  error_log("Categoría recibida: " . ($categoria_nombre ?: 'No se recibió categoría'));
 
   if (!function_exists('wp_handle_upload')) {
     require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -159,11 +151,10 @@ function cpbf_procesar_subida_imagenes() {
           $watermarked_attach_data = wp_generate_attachment_metadata($watermarked_attach_id, $watermarked_path);
           wp_update_attachment_metadata($watermarked_attach_id, $watermarked_attach_data);
 
-          // Extraer datos XMP y crear producto
           $xmp = extraer_datos_xmp($original_attach_id);
 
-          // Crear la categoría solo para la primera imagen subida
-          if (!$categoria_creada) {
+          if (!$categoria_creada && $categoria_nombre) {
+            error_log("Categoría final utilizada: " . $categoria_nombre);
             crear_categoria_woocommerce($categoria_nombre, $xmp);
             $categoria_creada = true;
           }
@@ -220,7 +211,7 @@ function crear_producto_simple($xmp, $watermarked_image_id, $original_image_id, 
 
     $product->set_status('publish');  // Publicar
     $product->set_catalog_visibility('visible'); // Visible en el catálogo
-    $precio = get_option('mi_plugin_precio_producto', 350);
+    $precio = get_option('mi_plugin_precio_1_foto', 350);
     $product->set_price($precio);
     $product->set_regular_price($precio);
 
@@ -314,7 +305,8 @@ function aplicar_marca_agua($imagen_path, $mime_type) {
 
 // Crear categoría de WooCommerce con campos personalizados de ACF usando XMP
 function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
-  // Usar la descripción corta ingresada y la categoría seleccionada en el formulario
+  error_log("Intentando crear categoría: " . $categoria_nombre);
+
   $descripcion = $_POST['descripcion_corta'] ?? '';
   $categoria_padre = $_POST['categoria_existente'] ?? 0;
 
@@ -329,30 +321,26 @@ function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
       ]
     );
 
-    if (!is_wp_error($term)) {
+    if (is_wp_error($term)) {
+      error_log("Error al crear la categoría: " . $term->get_error_message());
+    } else {
       $term_id = $term['term_id'];
+      error_log("Categoría creada con ID: " . $term_id);
 
-      // Obtener valores de XMP con defaults si faltan
       $fecha_raw = $xmp_datos['Creation Date'] ?? null;
       $fecha = $fecha_raw ? date_i18n('j \d\e F \d\e Y', strtotime($fecha_raw)) : 'Fecha no disponible';
-
-      // Convertir a formato YYYYMMDD para mantener consistencia en la base de datos
       $fecha_de_orden = $fecha_raw ? date('Ymd', strtotime($fecha_raw)) : '';
-
       $lugar = $xmp_datos['Location'] ?? 'Lugar no disponible';
       $fotografo = $xmp_datos['Credit'] ?? 'Autor desconocido';
 
-      // Guardar los campos en ACF
       update_field('fecha', $fecha, 'term_' . $term_id);
       update_field('fecha_de_orden', $fecha_de_orden, 'term_' . $term_id);
       update_field('lugar', $lugar, 'term_' . $term_id);
       update_field('fotografos', $fotografo, 'term_' . $term_id);
       update_field('descripcion_corta', $descripcion, 'term_' . $term_id);
 
-      // Guardar `fecha_de_orden` en `wp_termmeta` con el formato correcto
       update_term_meta($term_id, 'fecha_de_orden', $fecha_de_orden);
 
-      // Procesar y asignar la imagen de miniatura de la categoría si se subió
       if (!empty($_FILES['categoria_thumbnail']['name'])) {
         $uploaded_file = wp_handle_upload($_FILES['categoria_thumbnail'], ['test_form' => false]);
         if ($uploaded_file && !isset($uploaded_file['error'])) {
@@ -368,8 +356,12 @@ function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
           $attach_data = wp_generate_attachment_metadata($attach_id, $uploaded_file['file']);
           wp_update_attachment_metadata($attach_id, $attach_data);
           update_term_meta($term_id, 'thumbnail_id', $attach_id);
+        } else {
+          error_log("Error al subir la imagen de la categoría: " . $uploaded_file['error']);
         }
       }
     }
+  } else {
+    error_log("La categoría ya existe: " . $categoria_nombre);
   }
 }

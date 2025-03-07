@@ -4,20 +4,6 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-// Agregar la página de configuración al menú de administración
-function mi_plugin_agregar_pagina_configuracion() {
-  add_menu_page(
-    'Configuraciones Generales GAMBA',
-    'Configuraciones Generales GAMBA',
-    'manage_options',
-    'mi-plugin-configuracion',
-    'mi_plugin_mostrar_pagina_configuracion',
-    'dashicons-admin-generic',
-    20
-  );
-}
-add_action('admin_menu', 'mi_plugin_agregar_pagina_configuracion');
-
 // Renderizar la página de configuración
 function mi_plugin_mostrar_pagina_configuracion() {
   ?>
