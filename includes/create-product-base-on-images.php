@@ -89,8 +89,6 @@ function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
     $categoria_nombre = sanitize_text_field($_POST['categoria_woocommerce']);
   }
 
-  error_log("Categoría recibida: " . ($categoria_nombre ?: 'No se recibió categoría'));
-
   if (!function_exists('wp_handle_upload')) {
     require_once ABSPATH . 'wp-admin/includes/file.php';
   }
@@ -118,7 +116,6 @@ function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
       $new_file_path = $custom_dir . uniqid() . '.' . $file_extension;
 
       if (move_uploaded_file($file['tmp_name'], $new_file_path)) {
-        error_log("Imagen original movida a: " . $new_file_path);
         $file_url = str_replace(ABSPATH, site_url('/'), $new_file_path);
 
         $file_type = wp_check_filetype($new_file_path);
@@ -139,7 +136,6 @@ function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
         $watermarked_path = $upload_dir['path'] . '/' . uniqid() . '-watermarked.' . $file_extension;
         if (copy($new_file_path, $watermarked_path)) {
           aplicar_marca_agua($watermarked_path, $file_type['type']);
-          error_log("Imagen con marca de agua guardada en: " . $watermarked_path);
 
           $watermarked_attach_id = wp_insert_attachment([
             'guid'           => str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $watermarked_path),
@@ -154,7 +150,6 @@ function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
           $xmp = extraer_datos_xmp($original_attach_id);
 
           if (!$categoria_creada && $categoria_nombre) {
-            error_log("Categoría final utilizada: " . $categoria_nombre);
             crear_categoria_woocommerce($categoria_nombre, $xmp);
             $categoria_creada = true;
           }
@@ -182,9 +177,7 @@ function extraer_datos_xmp($attachment_id) {
   $xmp_datos = $adobeXMP ? $adobeXMP->get_xmp($attachment_id) : [];
 
   // Debug para verificar si se reciben los datos XMP
-  if (!empty($xmp_datos)) {
-    error_log("[DEBUG] XMP obtenidos: " . print_r($xmp_datos, true));
-  } else {
+  if (empty($xmp_datos)) {
     error_log("[DEBUG] No se encontraron datos XMP para el attachment ID: $attachment_id");
   }
 
@@ -299,14 +292,10 @@ function aplicar_marca_agua($imagen_path, $mime_type) {
   // Liberar memoria
   imagedestroy($image);
   imagedestroy($marca_agua);
-
-  error_log("Marca de agua aplicada a: " . $imagen_path);
 }
 
 // Crear categoría de WooCommerce con campos personalizados de ACF usando XMP
 function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
-  error_log("Intentando crear categoría: " . $categoria_nombre);
-
   $descripcion = $_POST['descripcion_corta'] ?? '';
   $categoria_padre = $_POST['categoria_existente'] ?? 0;
 
@@ -325,7 +314,6 @@ function crear_categoria_woocommerce($categoria_nombre, $xmp_datos) {
       error_log("Error al crear la categoría: " . $term->get_error_message());
     } else {
       $term_id = $term['term_id'];
-      error_log("Categoría creada con ID: " . $term_id);
 
       $fecha_raw = $xmp_datos['Creation Date'] ?? null;
       $fecha = $fecha_raw ? date_i18n('j \d\e F \d\e Y', strtotime($fecha_raw)) : 'Fecha no disponible';

@@ -19,9 +19,6 @@ function gamba_pagina_agregar_productos_evento() {
     $categoria_obj = get_term($categoria_id, 'product_cat');
     $categoria_nombre = $categoria_obj ? $categoria_obj->name : '';
 
-    // add debug to categoria_nombre
-    error_log("🔥 Categoria seleccionada: {$categoria_nombre}");
-
     if (!empty($categoria_nombre)) {
       cpbf_procesar_subida_imagenes($categoria_nombre);
     }
