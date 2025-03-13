@@ -1,13 +1,15 @@
 <?php
 
-// Enqueue custom stylesheet
-add_action('admin_enqueue_scripts', function() {
-  wp_enqueue_style(
-    'gamba-custom-style',
-    plugin_dir_url(__FILE__) . '../assets/css/add-product-page.css',
-    [],
-    '1.0.0'
-  );
+add_action('admin_enqueue_scripts', function($hook) {
+  // Verifica si estamos en la página específica del administrador
+  if (isset($_GET['page']) && $_GET['page'] === 'gamba-agregar-productos-evento') {
+    wp_enqueue_style(
+      'gamba-custom-style',
+      plugin_dir_url(__FILE__) . '../assets/css/add-product-page.css',
+      [],
+      '1.0.0'
+    );
+  }
 });
 
 // Función para la página "Agregar productos a evento"
