@@ -1,7 +1,6 @@
 <?php
-// Shortcode para mostrar subcategorías con paginación
+// Shortcode para mostrar solo subcategorías con paginación
 function mostrar_solo_subcategorias_con_paginacion($atts) {
-
   // Enqueue CSS file ONLY on this WooCommerce category archive page
   wp_enqueue_style('gallery-page', plugin_dir_url(__FILE__) . '../assets/css/gallery-page.css');
 
@@ -10,38 +9,34 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
     'per_page' => 12, // Número de categorías por página
   ], $atts);
 
-  // Obtener la página actual desde el parámetro 'paged'
-  $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
+  // Obtener la página actual correctamente
+  $paged = max(1, get_query_var('paged', 1));
   $per_page = intval($atts['per_page']);
-  $current_page = max(1, get_query_var('paged'));
-  $offset = ($paged - 1) * $per_page;
 
-  // Obtener todas las categorías de productos con orden por ACF 'fecha_de_orden'
-  $terms = get_terms([
+  // Obtener solo las subcategorías de 'product_cat'
+  $args = [
     'taxonomy'   => 'product_cat',
     'meta_key'   => 'fecha_de_orden',
     'orderby'    => 'meta_value_num',
     'order'      => 'DESC',
     'hide_empty' => false,
-  ]);
+  ];
 
-  // Verificar si hubo un error al obtener los términos
-  if (is_wp_error($terms)) {
-    return '<p>Error al obtener las subcategorías.</p>';
-  }
+  $all_terms = get_terms($args);
 
   // Filtrar para obtener solo subcategorías (categorías que tienen un padre)
-  $subcategories = array_filter($terms, function ($term) {
+  $subcategories = array_filter($all_terms, function ($term) {
     return $term->parent !== 0;
   });
 
-  if (empty($subcategories)) {
+  // Contar total de subcategorías y paginar manualmente
+  $total_subcategories = count($subcategories);
+  $total_pages = ceil($total_subcategories / $per_page);
+  $paged_subcategories = array_slice($subcategories, ($paged - 1) * $per_page, $per_page);
+
+  if (empty($paged_subcategories)) {
     return '<p>No hay subcategorías disponibles.</p>';
   }
-
-  // Calcular la paginación
-  $total_pages = ceil(count($subcategories) / $per_page);
-  $paged_subcategories = array_slice($subcategories, $offset, $per_page);
 
   // Iniciar el HTML para las cards
   $output = '<div class="subcategorias-grid">';
@@ -50,11 +45,12 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
     // Obtener la miniatura de la categoría
     $thumbnail_id = get_term_meta($term->term_id, 'thumbnail_id', true);
     $thumbnail_url = $thumbnail_id ? wp_get_attachment_url($thumbnail_id) : wc_placeholder_img_src();
+
     // Obtener la categoría padre
     $parent_name = get_term($term->parent)->name;
 
+    // Obtener la fecha
     $event_date = get_term_meta($term->term_id, 'fecha_de_orden', true);
-    // Format date like this: 12/12/2024
     $event_date = date('d/m/Y', strtotime($event_date));
 
     // Generar el HTML de la card
@@ -70,28 +66,46 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
 
   $output .= '</div>';
 
-  // Agregar la paginación con botones de primera, anterior, siguiente y última página
+  // Agregar la paginación
   if ($total_pages > 1) {
     $output .= '<div class="categorias-pagination">';
 
     // Botón a la primera página
-    if ($current_page > 1) {
-      $output .= '<a href="' . esc_url(get_pagenum_link(1)) . '" class="pagination-button">Primera</a>';
+    if ($paged > 1) {
+      $output .= '<a class="first-page" href="' . esc_url(get_pagenum_link(1)) . '" class="pagination-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+          <path d="M11 17.8799L6 12.8799L11 7.87988" stroke="#362154" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M18 17.8799L13 12.8799L18 7.87988" stroke="#362154" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>';
     }
 
     // Botones numerados
     $output .= paginate_links([
       'base'      => get_pagenum_link(1) . '%_%',
       'format'    => 'page/%#%',
-      'current'   => $current_page,
+      'current'   => $paged,
       'total'     => $total_pages,
-      'prev_text' => 'Anterior',
-      'next_text' => 'Siguiente',
+      'prev_text' => '
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+          <path d="M15 18.8799L9 12.8799L15 6.87988" stroke="#362154" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      ',
+      'next_text' => '
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+          <path d="M9 18.8799L15 12.8799L9 6.87988" stroke="#362154" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      ',
     ]);
 
     // Botón a la última página
-    if ($current_page < $total_pages) {
-      $output .= '<a href="' . esc_url(get_pagenum_link($total_pages)) . '" class="pagination-button">Última</a>';
+    if ($paged < $total_pages) {
+      $output .= '<a class="last-page" href="' . esc_url(get_pagenum_link($total_pages)) . '" class="pagination-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+          <path d="M13 17.8799L18 12.8799L13 7.87988" stroke="#362154" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 17.8799L11 12.8799L6 7.87988" stroke="#362154" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>';
     }
 
     $output .= '</div>';
