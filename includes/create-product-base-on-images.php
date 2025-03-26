@@ -83,10 +83,20 @@ function cpbf_pagina_contenido() {
 // Procesar y subir imágenes a la Biblioteca de Medios y extraer datos
 function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
   $categoria_creada = false;
+  $imagenes_subidas = 0;
 
   if (!$categoria_nombre && isset($_POST['categoria_woocommerce'])) {
     // Obtener el valor del input 'categoria_woocommerce'
     $categoria_nombre = sanitize_text_field($_POST['categoria_woocommerce']);
+  }
+
+  // Verificar si la categoría ya existe en WooCommerce
+  if ($categoria_nombre && term_exists($categoria_nombre, 'product_cat')) {
+    echo '<div class="error">';
+    echo '<p>El evento <strong>' . esc_html($categoria_nombre) . '</strong> ya existe. No se procesarán las imágenes.</p>';
+    echo '<p>Para agregar fotos a un evento por favor hacerlo desde <a href="/wp-admin/admin.php?page=gamba-agregar-productos-evento">ésta</a> página </p>';
+    echo '</div>';
+    return; // Detener el proceso
   }
 
   if (!function_exists('wp_handle_upload')) {
@@ -158,6 +168,8 @@ function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
             crear_producto_simple($xmp, $watermarked_attach_id, $original_attach_id, $categoria_nombre);
           }
 
+          $imagenes_subidas++;
+
           echo '<div class="updated"><p>Imagen subida y producto creado: ' . esc_html($file['name']) . '</p></div>';
         } else {
           error_log("Error al copiar la imagen para aplicar la marca de agua.");
@@ -167,6 +179,19 @@ function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
         error_log("Error al mover la imagen a la carpeta personalizada.");
         echo '<div class="error"><p>Error al mover la imagen a la carpeta personalizada.</p></div>';
       }
+    }
+  }
+
+  // Mensaje final con resumen de imágenes subidas
+  if ($imagenes_subidas > 0) {
+    // Obtener el ID de la categoría
+    $categoria = get_term_by('name', $categoria_nombre, 'product_cat');
+    if ($categoria) {
+      $categoria_url = get_term_link($categoria);
+      echo '<div class="updated">';
+      echo '<p>Se subieron <strong>' . esc_html($imagenes_subidas) . '</strong> fotos a la categoría <strong>' . esc_html($categoria_nombre) . '</strong>.</p>';
+      echo '<p><a href="' . esc_url($categoria_url) . '" target="_blank">Ver categoría</a></p>';
+      echo '</div>';
     }
   }
 }

@@ -47,7 +47,11 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
     $thumbnail_url = $thumbnail_id ? wp_get_attachment_url($thumbnail_id) : wc_placeholder_img_src();
 
     // Obtener la categoría padre
-    $parent_name = get_term($term->parent)->name;
+    $parent_term = get_term($term->parent);
+    if (!is_wp_error($parent_term)) {
+      $parent_name = $parent_term->name;
+      $parent_url = get_term_link($parent_term);
+    }
 
     // Obtener la fecha
     $event_date = get_term_meta($term->term_id, 'fecha_de_orden', true);
@@ -60,7 +64,7 @@ function mostrar_solo_subcategorias_con_paginacion($atts) {
           <img src="' . esc_url($thumbnail_url) . '" alt="' . esc_attr($term->name) . '" class="subcategory-thumbnail">
           <h3 class="subcategory-title">' . esc_html($term->name) . '</h3>
         </a>
-        <p class="parent-category"><span>' . esc_html($event_date) . '</span><span>' . esc_html($parent_name) . '</span></p>
+        <p class="parent-category"><span>' . esc_html($event_date) . '</span><span><a href="' . $parent_url . '">' . esc_html($parent_name) . '</a></span></p>
       </div>';
   }
 
