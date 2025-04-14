@@ -88,15 +88,16 @@ function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
   if (!$categoria_nombre && isset($_POST['categoria_woocommerce'])) {
     // Obtener el valor del input 'categoria_woocommerce'
     $categoria_nombre = sanitize_text_field($_POST['categoria_woocommerce']);
-  }
 
-  // Verificar si la categoría ya existe en WooCommerce
-  if ($categoria_nombre && term_exists($categoria_nombre, 'product_cat')) {
-    echo '<div class="error">';
-    echo '<p>El evento <strong>' . esc_html($categoria_nombre) . '</strong> ya existe. No se procesarán las imágenes.</p>';
-    echo '<p>Para agregar fotos a un evento por favor hacerlo desde <a href="/wp-admin/admin.php?page=gamba-agregar-productos-evento">ésta</a> página </p>';
-    echo '</div>';
-    return; // Detener el proceso
+
+    // Verificar si la categoría ya existe en WooCommerce
+    if ($categoria_nombre && term_exists($categoria_nombre, 'product_cat')) {
+      echo '<div class="error">';
+      echo '<p>El evento <strong>' . esc_html($categoria_nombre) . '</strong> ya existe. No se procesarán las imágenes.</p>';
+      echo '<p>Para agregar fotos a un evento por favor hacerlo desde <a href="/wp-admin/admin.php?page=gamba-agregar-productos-evento">ésta</a> página </p>';
+      echo '</div>';
+      return; // Detener el proceso
+    }
   }
 
   if (!function_exists('wp_handle_upload')) {

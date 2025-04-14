@@ -153,21 +153,14 @@ function gamba_agregar_menu() {
 add_action('admin_menu', 'gamba_agregar_menu');
 
 add_filter( 'template_include', function( $template ) {
-  error_log('🔍 WordPress está cargando la plantilla: ' . $template);
-
   if ( is_tax( 'product_cat' ) ) {
     $term = get_queried_object();
-
-    error_log('🟡 Entrando en is_tax(product_cat)');
-    error_log('🔹 ID de la categoría: ' . $term->term_id);
-    error_log('🔹 Parent ID: ' . $term->parent);
 
     if ( $term->parent != 0 ) { // Solo si es subcategoría
       $custom_template = WP_PLUGIN_DIR . '/gamba/elementor-templates/template-subcategories.php';
 
       // Registrar si el archivo existe
       if ( file_exists( $custom_template ) ) {
-        error_log('✅ Plantilla encontrada: ' . $custom_template);
         return $custom_template;
       } else {
         error_log('❌ ERROR: No se encontró la plantilla en: ' . $custom_template);
