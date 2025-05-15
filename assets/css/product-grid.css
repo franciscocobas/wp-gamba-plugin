@@ -100,7 +100,11 @@ html {
 #productGrid2 .product-info .product-actions {
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: space-between;
+}
+
+#productGrid2 .product-info .share-actions {
+  position: relative;
 }
 
 #productGrid2 .product-card .product-price {
@@ -112,6 +116,98 @@ html {
   font-size: 0.975rem;
 }
 
+#productGrid2 .product-card .share-photo {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.875rem;
+  font-family: "Lato", sans-serif;
+  color: #613B96;
+  border: none;
+  padding: 0;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+#productGrid2 .product-card .share-photo:hover,
+#productGrid2 .product-card .share-photo:focus {
+  background-color: transparent;
+}
+
+#productGrid2 .product-card .price-and-cart {
+  display: flex;
+  gap: 8px;
+}
+
+.share-popup-2 {
+  position: absolute;
+  top: -58px;
+  background-color: white;
+  padding: 12px 24px;
+  border: 1px solid #613B96;
+  border-radius: 4px;
+  z-index: 9999;
+}
+
+.share-popup-2.hidden {
+  display: none;
+}
+
+.share-popup-2 .share-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 7.5rem;
+}
+
+.share-popup-2 .share-buttons-2 {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.share-popup-2 .share-buttons-2 a,
+.share-popup-2 .share-buttons-2 button,
+.share-popup-2 .share-buttons-2 button:hover,
+.share-popup-2 .share-buttons-2 button:focus {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+}
+
+.share-popup-2 svg {
+  width: 24px;
+  height: auto;
+}
+
+.share-popup-2 .email-link svg {
+  height: 24px;
+  width: auto;
+}
+
+.share-popup-2 button {
+  border: none;
+  padding: 0;
+}
+
+.share-popup-2 button:hover {
+  background-color: transparent;
+}
+
+.share-popup-content .copy-message {
+  color: #613B96;
+  font-weight: 500;
+  font-family: "Lato", sans-serif;
+}
+
+@media only screen and (max-width: 768px) {
+  #productGrid2 .product-info .product-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+}
+
 #productGrid2 .product-card .product-add-to-cart {
   border-radius: 6px;
   border: 1px solid #613B96;
@@ -120,6 +216,7 @@ html {
   font-family: "Lato", sans-serif;
   font-size: 0.875rem;
   display: flex;
+  align-items: center;
   gap: 8px;
   padding: 4px 16px;
 }

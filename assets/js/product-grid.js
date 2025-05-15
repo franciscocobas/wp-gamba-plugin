@@ -73,4 +73,65 @@ document.addEventListener("DOMContentLoaded", function () {
       updatePagination();
     });
   });
+
+  function openPopup(e) {
+    const popupId = this.getAttribute("data-popup");
+    const popup = document.getElementById(popupId);
+
+    if (popup) {
+      popup.classList.remove("hidden");
+      document.getElementById("holis").textContent = popup.style.display
+    }
+  }
+
+  // Abrir popup
+  document.querySelectorAll(".share-photo").forEach(function (button) {
+    button.addEventListener("click", openPopup);
+  });
+
+  // Cerrar popup
+  document.querySelectorAll(".share-popup-2 .close").forEach(function (closeBtn) {
+    closeBtn.addEventListener("click", function () {
+      const popup = this.closest(".share-popup-2");
+      popup.style.display = "none";
+      popup.querySelector(".copy-message").style.display = "none";
+    });
+  });
+
+  // Cerrar al hacer clic fuera del popup
+  window.addEventListener("click", function (e) {
+    document.querySelectorAll(".share-popup-2").forEach(function (popup) {
+      if (e.target === popup) {
+        popup.style.display = "none";
+        popup.querySelector(".copy-message").style.display = "none";
+      }
+    });
+  });
+
+  // Copiar enlace
+  document.querySelectorAll(".copy-link-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const link = this.getAttribute("data-link");
+      navigator.clipboard.writeText(link).then(() => {
+        const message = this.closest(".share-popup-content").querySelector(".copy-message");
+        message.style.display = "block";
+
+        setTimeout(() => {
+          message.style.display = "none";
+        }, 2000);
+      });
+    });
+  });
+
+  // Cerrar popup si se hace clic fuera del contenido
+  window.addEventListener("click", function (e) {
+    document.querySelectorAll(".share-popup-2").forEach(function (popup) {
+      const content = document.querySelector(".share-actions");
+      if (e.target === popup || !content.contains(e.target)) {
+        popup.style.display = "none";
+        const message = popup.querySelector(".copy-message");
+        if (message) message.style.display = "none";
+      }
+    });
+  });
 });

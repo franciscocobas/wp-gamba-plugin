@@ -2,7 +2,7 @@
 /*
 Plugin Name: Plugin de Gamba
 Description: Plugin que maneja funcionalidades como creación de productos y visualización de categorías.
-Version: 1.0
+Version: 1.1
 Author: Francisco Cobas
 */
 
