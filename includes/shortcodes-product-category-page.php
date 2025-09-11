@@ -248,7 +248,7 @@ function product_archive_grid_shortcode() {
           <path d="M12 19L5 12L12 5" stroke="#FF2E5B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <span id="photoCounter">Foto <span class="current-item">1</span> de ' . esc_html($totalProducts) . '</span>
+      <span id="photoCounter"></span>
       <button id="nextProduct">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M5 12H19" stroke="#FF2E5B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

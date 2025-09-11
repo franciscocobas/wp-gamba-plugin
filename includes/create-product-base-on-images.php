@@ -60,6 +60,13 @@ function cpbf_pagina_contenido() {
 
   echo '</select>';
   echo '</div>';
+
+  echo '<div class="field-group">';
+  echo '<label for="precio_personalizado">Precio personalizado por foto (opcional):</label>';
+  echo '<input type="number" name="precio_personalizado" id="precio_personalizado" step="1" min="0" placeholder="Ej: 200">';
+  echo '<small>Si se deja vacío, se usará el precio por defecto configurado en opciones generales.</small>';
+  echo '</div>';
+
   echo '<div class="field-group images-upload">';
   echo '<label for="product_images"><strong>Seleccionar las imágenes a subir:</strong> <span class="mark">*</span></label>';
   echo '<input id="product_images" type="file" name="product_images[]" multiple accept="image/*">';
@@ -81,7 +88,7 @@ function cpbf_pagina_contenido() {
 }
 
 // Procesar y subir imágenes a la Biblioteca de Medios y extraer datos
-function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
+function cpbf_procesar_subida_imagenes($categoria_nombre = '', $precio_personalizado = null) {
   $categoria_creada = false;
   $imagenes_subidas = 0;
 
@@ -166,7 +173,7 @@ function cpbf_procesar_subida_imagenes($categoria_nombre = '') {
           }
 
           if (!empty($xmp)) {
-            crear_producto_simple($xmp, $watermarked_attach_id, $original_attach_id, $categoria_nombre);
+            crear_producto_simple($xmp, $watermarked_attach_id, $original_attach_id, $categoria_nombre, $precio_personalizado);
           }
 
           $imagenes_subidas++;
@@ -211,7 +218,7 @@ function extraer_datos_xmp($attachment_id) {
 }
 
 // Función para crear el producto de WooCommerce
-function crear_producto_simple($xmp, $watermarked_image_id, $original_image_id, $categoria_nombre) {
+function crear_producto_simple($xmp, $watermarked_image_id, $original_image_id, $categoria_nombre, $precio_personalizado) {
   try {
     $product = new WC_Product_Simple();
 
@@ -230,7 +237,18 @@ function crear_producto_simple($xmp, $watermarked_image_id, $original_image_id, 
 
     $product->set_status('publish');  // Publicar
     $product->set_catalog_visibility('visible'); // Visible en el catálogo
+
+    // Establece el precio
+    // Obtener precio personalizado desde el formulario, si está disponible
     $precio = get_option('mi_plugin_precio_1_foto', 350);
+
+    // Si se recibió un precio personalizado como parámetro (por evento), se usa
+    if (!empty($precio_personalizado) && is_numeric($precio_personalizado) && $precio_personalizado > 0) {
+      $precio = floatval($precio_personalizado);
+    } elseif (isset($_POST['precio_personalizado']) && is_numeric($_POST['precio_personalizado']) && $_POST['precio_personalizado'] > 0) {
+      $precio = floatval($_POST['precio_personalizado']);
+    }
+
     $product->set_price($precio);
     $product->set_regular_price($precio);
 

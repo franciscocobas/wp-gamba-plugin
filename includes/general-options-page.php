@@ -79,18 +79,18 @@ function mi_plugin_mostrar_campo_precio_10() {
 function aplicar_descuento_por_cantidad( $cart ) {
   if ( is_admin() && ! defined( 'DOING_AJAX' ) ) return;
 
-  $precio_1_foto = get_option('mi_plugin_precio_1_foto', 0);
   $precio_5_fotos = get_option('mi_plugin_precio_5_fotos', 0);
   $precio_10_fotos = get_option('mi_plugin_precio_10_fotos', 0);
 
   foreach ( $cart->get_cart() as $cart_item ) {
     $cantidad = $cart_item['quantity'];
-    $nuevo_precio = $cart_item['data']->get_regular_price();
 
-    // Aplicar precios según la cantidad
-    if ( $cantidad == 1 ) {
-      $nuevo_precio = $precio_1_foto;
-    } elseif ( $cantidad >= 5 && $cantidad < 10 ) {
+    // Obtener el precio original del producto
+    $precio_original = $cart_item['data']->get_regular_price();
+    $nuevo_precio = $precio_original;
+
+    // Aplicar descuentos solo si hay 5 o más unidades
+    if ( $cantidad >= 5 && $cantidad < 10 ) {
       $nuevo_precio = $precio_5_fotos / 5; // Precio unitario para 5 fotos
     } elseif ( $cantidad >= 10 ) {
       $nuevo_precio = $precio_10_fotos / 10; // Precio unitario para 10 fotos
@@ -100,3 +100,6 @@ function aplicar_descuento_por_cantidad( $cart ) {
   }
 }
 add_action( 'woocommerce_before_calculate_totals', 'aplicar_descuento_por_cantidad' );
+
+/*
+*/

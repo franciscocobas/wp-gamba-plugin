@@ -12,6 +12,58 @@ add_action('admin_enqueue_scripts', function($hook) {
   }
 });
 
+/**
+ * Verifica si una categoría de productos tiene un precio personalizado
+ * distinto al precio por defecto configurado en las opciones del plugin.
+ *
+ * Esta función obtiene el primer producto asociado a la categoría (`product_cat`)
+ * y compara su precio con el precio por defecto establecido mediante la opción
+ * `mi_plugin_precio_1_foto`.
+ *
+ * @param int $categoria_id El ID de la categoría de producto (product_cat).
+ * @return float|null Devuelve el precio personalizado si es distinto al valor por defecto.
+ *                    Si el precio coincide con el valor por defecto o no se encuentra
+ *                    un producto válido, devuelve null.
+ */
+function cpbf_obtener_precio_personalizado_categoria($categoria_id) {
+  $precio_defecto = floatval(get_option('mi_plugin_precio_1_foto', 350));
+
+  $args = [
+    'post_type'      => 'product',
+    'posts_per_page' => 1,
+    'tax_query'      => [
+      [
+        'taxonomy' => 'product_cat',
+        'field'    => 'term_id',
+        'terms'    => intval($categoria_id),
+      ]
+    ],
+    'meta_query'     => [
+      [
+        'key'     => '_price',
+        'compare' => 'EXISTS',
+      ]
+    ]
+  ];
+
+  $query = new WP_Query($args);
+
+  if ($query->have_posts()) {
+    $query->the_post();
+    $product = wc_get_product(get_the_ID());
+
+    if ($product) {
+      $precio_producto = floatval($product->get_price());
+      wp_reset_postdata();
+
+      return ($precio_producto !== $precio_defecto) ? $precio_producto : null;
+    }
+  }
+
+  wp_reset_postdata();
+  return null;
+}
+
 // Función para la página "Agregar productos a evento"
 function gamba_pagina_agregar_productos_evento() {
   if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['categoria'])) {
@@ -20,7 +72,10 @@ function gamba_pagina_agregar_productos_evento() {
     $categoria_nombre = $categoria_obj ? $categoria_obj->name : '';
 
     if (!empty($categoria_nombre)) {
-      cpbf_procesar_subida_imagenes($categoria_nombre);
+      $precio_personalizado = cpbf_obtener_precio_personalizado_categoria($categoria_id);
+
+      // Llama a la función pasando el precio personalizado si existe
+      cpbf_procesar_subida_imagenes($categoria_nombre, $precio_personalizado);
     }
   }
   ?>
