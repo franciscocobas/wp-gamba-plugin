@@ -1,0 +1,13 @@
+/* Página de finalizar compra */
+
+/*
+ * Selectores de país y departamento (select2): WooCommerce le pone padding: .5em al
+ * texto y Elementor Pro le fija line-height: 45px sin sacar el padding de arriba y de
+ * abajo, así que el texto queda corrido hacia abajo. La caja mide 45px con 1px de
+ * borde de cada lado, por eso la altura de línea es 43px.
+ */
+body .elementor-widget-woocommerce-checkout-page .select2-container--default .select2-selection--single .select2-selection__rendered {
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 43px;
+}

@@ -2,14 +2,17 @@
 /*
 Plugin Name: Plugin de Gamba
 Description: Plugin que maneja funcionalidades como creación de productos y visualización de categorías.
-Version: 1.1.1
+Version: 1.2.0
 Author: Francisco Cobas
 */
 
 // Incluir los archivos del plugin
 require_once plugin_dir_path(__FILE__) . 'includes/add-products-to-category.php';
+require_once plugin_dir_path(__FILE__) . 'includes/checkout.php';
 require_once plugin_dir_path(__FILE__) . 'includes/create-product-base-on-images.php';
+require_once plugin_dir_path(__FILE__) . 'includes/descargas.php';
 require_once plugin_dir_path(__FILE__) . 'includes/general-options-page.php';
+require_once plugin_dir_path(__FILE__) . 'includes/mis-fotos.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-gallery-page.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-home-page.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes-product-category-page.php';
